@@ -79,15 +79,14 @@
         <div id="listView" class="flex flex-col gap-4 hidden"></div>
     </div>
 
-<script>
-        // Utilizing Google Visualization API wrapper to completely bypass CORS security restrictions on local files
-        const SHEET_JSON_URL = 'https://docs.google.com/spreadsheets/d/1vSofYRWmgxZ13DQ1Bj2_jPEQo8dh0W8fv7kV7vpFxO8TAuKB3KXfbVYdCfMCPxBtXd8TcfeVhJLbj9J/gviz/tq?tqx=responseHandler:processGoogleData';
+    <script>
+        // Your exact, working published CSV link
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSofYRWmgxZ13DQ1Bj2_jPEQo8dh0W8fv7kV7vpFxO8TAuKB3KXfbVYdCfMCPxBtXd8TcfeVhJLbj9J/pub?gid=0&single=true&output=csv';
 
         let rawData = [];
         let currentSortRule = 'ranking'; 
         let sortAscending = true; 
 
-        // The exact ordered sequence of NLW difficulties based on tier ranking weight list
         const DIFFICULTY_ORDER = [
             "all",
             "breaking point",
@@ -99,52 +98,71 @@
             "impossible"
         ];
 
-        function fetchData() {
+        // Safely fetch data using native modern AJAX fetch, completely immune to old JSONP errors
+        async function fetchData() {
             toggleLoader(true);
-            
-            const oldScript = document.getElementById('sheets-jsonp');
-            if (oldScript) oldScript.remove();
-
-            const script = document.createElement('script');
-            script.id = 'sheets-jsonp';
-            script.src = SHEET_JSON_URL + '&t=' + new Date().getTime();
-            
-            script.onerror = function() {
-                console.error("Dashboard Sync Interrupted");
-                alert("Could not load tracking values.\n\nMake sure the spreadsheet is shared as 'Anyone with link can view'.");
-                toggleLoader(false);
-            };
-            
-            document.body.appendChild(script);
-        }
-
-        window.processGoogleData = function(response) {
             try {
-                if (!response || !response.table) throw new Error("Invalid sheet layout returned");
+                // Cache busting parameter added to make updates instant on sync click
+                const response = await fetch(`${CSV_URL}&t=${new Date().getTime()}`);
+                if (!response.ok) throw new Error("Network issue fetching Google Sheet data.");
                 
-                const cols = response.table.cols.map(c => (c.label || '').trim());
-                const rows = response.table.rows;
-                
-                rawData = rows.map((row, index) => {
-                    let record = { _defaultRank: index + 1 };
-                    cols.forEach((header, colIdx) => {
-                        if (header) {
-                            const cellValue = row.c[colIdx] ? row.c[colIdx].v : '';
-                            record[header] = cellValue !== null ? String(cellValue) : '';
-                        }
-                    });
-                    return record;
-                });
-
-                buildDifficultyFilter(cols);
-                filterAndSortData();
+                const csvText = await response.text();
+                parseCSVData(csvText);
             } catch (error) {
-                console.error("Data conversion error:", error);
-                alert("Error processing tracking data structure.");
-            } finally {
+                console.error("Dashboard Sync Interrupted:", error);
+                alert("Could not load tracking values.\n\nVerify that your Web Publishing settings are still active inside Google Sheets.");
                 toggleLoader(false);
             }
-        };
+        }
+
+        // A robust custom CSV line parser that cleanly handles values containing commas enclosed in quotes
+        function parseCSVData(text) {
+            const lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
+            if (lines.length < 1) return;
+
+            // Helper to split a CSV line properly keeping commas inside quotes safe
+            const splitCSVLine = (line) => {
+                const result = [];
+                let current = '';
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        result.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                result.push(current.trim());
+                return result;
+            };
+
+            const headers = splitCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim());
+            
+            rawData = [];
+            for (let i = 1; i < lines.length; i++) {
+                const values = splitCSVLine(lines[i]);
+                if (values.length === 0 || (values.length === 1 && values[0] === "")) continue;
+                
+                let record = { _defaultRank: i };
+                headers.forEach((header, index) => {
+                    if (header) {
+                        let val = values[index] || '';
+                        // Remove surrounding container quotes if left behind
+                        val = val.replace(/^"|"$/g, '');
+                        record[header] = val;
+                    }
+                });
+                rawData.push(record);
+            }
+
+            buildDifficultyFilter(headers);
+            filterAndSortData();
+            toggleLoader(false);
+        }
 
         function buildDifficultyFilter(headers) {
             const diffColumn = headers.find(h => h.toLowerCase().includes('difficulty'));
@@ -153,7 +171,6 @@
             const detectedDifficulties = [...new Set(rawData.map(item => item[diffColumn]))]
                 .filter(val => val && val.trim() !== "");
 
-            // Sort target arrays based on predefined tier order list, remaining dynamic options fall to alphabetical back
             detectedDifficulties.sort((a, b) => {
                 let idxA = DIFFICULTY_ORDER.indexOf(a.toLowerCase());
                 let idxB = DIFFICULTY_ORDER.indexOf(b.toLowerCase());
@@ -237,7 +254,6 @@
 
                 const rank = level._defaultRank;
                 
-                // Color formatting definitions for Top ranks (#fff688 for 1-5, Silver variations for 6-10)
                 let borderStyle = "border-neutral-800";
                 let rankBadgeStyle = "bg-neutral-900 border-neutral-800 text-neutral-400";
                 
@@ -337,15 +353,7 @@
             }
         }
 
-function toggleLoader(show) {
-            document.getElementById('loading').classList.toggle('hidden', !show);
-            if(show) {
-                document.getElementById('listView').classList.add('hidden');
-                document.getElementById('emptyState').classList.add('hidden');
-            }
-        }
-
-        // Wait safely until the DOM and window namespaces are fully ready
+        // Trigger safe load immediately upon assembly
         window.addEventListener('DOMContentLoaded', fetchData);
     </script>
 </body>
