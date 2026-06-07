@@ -337,7 +337,16 @@
             }
         }
 
-	window.addEventListener('DOMContentLoaded', fetchData);
+function toggleLoader(show) {
+            document.getElementById('loading').classList.toggle('hidden', !show);
+            if(show) {
+                document.getElementById('listView').classList.add('hidden');
+                document.getElementById('emptyState').classList.add('hidden');
+            }
+        }
+
+        // Wait safely until the DOM and window namespaces are fully ready
+        window.addEventListener('DOMContentLoaded', fetchData);
     </script>
 </body>
 </html>
