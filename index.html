@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extreme Demon Completion Tracker</title>
+    <!-- Tailwind CSS Engine -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans antialiased selection:bg-indigo-500/30">
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 pb-6 border-b border-slate-800 gap-4">
+            <div>
+                <h1 class="text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
+                    <i class="fa-solid fa-trophy text-amber-500"></i> Demon Completions Tracker
+                </h1>
+                <p class="text-sm text-slate-400 mt-1">Live data synced from Google Sheets</p>
+            </div>
+            <button onclick="fetchData()" class="bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 shadow-lg shadow-indigo-600/20 cursor-pointer">
+                <i class="fa-solid fa-rotate"></i> Sync Data
+            </button>
+        </header>
+
+        <!-- Controls Dashboard -->
+        <div class="bg-slate-800/50 p-5 rounded-2xl border border-slate-700/60 mb-8 flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center backdrop-blur-md">
+            
+            <!-- Filter by NLW Difficulty -->
+            <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center grow max-w-2xl">
+                <div class="relative w-full sm:w-64">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                        <i class="fa-solid fa-layer-group"></i>
+                    </span>
+                    <select id="difficultyFilter" onchange="filterAndSortData()" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-4 py-2.5 text-sm text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 cursor-pointer appearance-none">
+                        <option value="all">All Difficulties (NLW)</option>
+                    </select>
+                </div>
+                
+                <!-- Search bar input -->
+                <div class="relative grow">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" id="searchInput" oninput="filterAndSortData()" placeholder="Search level name, creator..." class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-indigo-500">
+                </div>
+            </div>
+
+            <!-- Sorting Parameters -->
+            <div class="flex flex-wrap items-center gap-3 justify-start lg:justify-end">
+                <div class="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-xl p-1">
+                    <button onclick="changeSortRule('ranking')" id="sort-ranking" class="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer bg-indigo-600 text-white">
+                        Default Rank
+                    </button>
+                    <button onclick="changeSortRule('date')" id="sort-date" class="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer text-slate-400 hover:text-slate-200">
+                        Date Done
+                    </button>
+                    <button onclick="changeSortRule('attempts')" id="sort-attempts" class="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer text-slate-400 hover:text-slate-200">
+                        Attempts
+                    </button>
+                </div>
+
+                <button onclick="toggleSortDirection()" class="bg-slate-900 border border-slate-700 text-slate-200 p-2.5 rounded-xl text-sm hover:bg-slate-750 transition cursor-pointer w-10 h-10 flex items-center justify-center" title="Invert Sorting Direction">
+                    <i id="directionIcon" class="fa-solid fa-sort-amount-down"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- System Loading Loop -->
+        <div id="loading" class="flex flex-col items-center justify-center py-24">
+            <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500/20 border-b-indigo-500 mb-4"></div>
+            <p class="text-slate-400 font-medium animate-pulse">Parsing Google Sheets output...</p>
+        </div>
+
+        <!-- No Matching Items State -->
+        <div id="emptyState" class="hidden text-center py-20 bg-slate-800/20 rounded-2xl border border-dashed border-slate-700">
+            <i class="fa-solid fa-folder-open text-slate-600 text-4xl mb-3"></i>
+            <p class="text-slate-400 font-medium">No completions matching your parameters found.</p>
+        </div>
+
+        <!-- Render View Layout -->
+        <div id="listView" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden"></div>
+    </div>
+
+<script>
+        // Formatted cleanly to pull raw text streaming safely from Google Drive
+        const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSofYRWmgxZ13DQ1Bj2_jPEQo8dh0W8fv7kV7vpFxO8TAuKB3KXfbVYdCfMCPxBtXd8TcfeVhJLbj9J/pub?gid=0&single=true&output=csv'; 
+
+        let rawData = [];
+        let currentSortRule = 'ranking'; 
+        let sortAscending = true; 
+
+        // Safe CSV Parser that accommodates quotes, commas, and missing fields
+        function parseCSV(text) {
+            let lines = text.split(/\r\n|\n/);
+            return lines.map(line => {
+                let matches = [];
+                let match;
+                // Matches standard text OR text wrapped in quotes
+                let regex = /([^",]+)|"([^"]*)"/g;
+                
+                while ((match = regex.exec(line)) !== null) {
+                    matches.push(match[1] || match[2]);
+                }
+                return matches.map(val => val.trim());
+            }).filter(row => row.length > 0);
+        }
+
+        async function fetchData() {
+            toggleLoader(true);
+            try {
+                // Cache-busting parameter added to prevent CORS/Caching hiccups
+                const response = await fetch(`${SHEET_CSV_URL}&t=${new Date().getTime()}`);
+                if (!response.ok) throw new Error("Network error accessing source sheet.");
+                
+                const dataText = await response.text();
+                const rows = parseCSV(dataText);
+
+                if(!rows || rows.length <= 1) {
+                    throw new Error("Sheet is empty or structure is invalid.");
+                }
+
+                const headers = rows[0];
+                
+                rawData = rows.slice(1).map((row, index) => {
+                    let record = { _defaultRank: index + 1 }; 
+                    headers.forEach((header, colIdx) => {
+                        record[header] = row[colIdx] || '';
+                    });
+                    return record;
+                });
+
+                buildDifficultyFilter(headers);
+                filterAndSortData();
+            } catch (error) {
+                console.error("Dashboard Sync Interrupted:", error);
+                alert("Could not load tracking values.\n\nVerify that:\n1. The spreadsheet is Published to Web as a CSV.\n2. You are connected to the internet.");
+            } finally {
+                toggleLoader(false);
+            }
+        }
+
+        function buildDifficultyFilter(headers) {
+            const diffColumn = headers.find(h => h.toLowerCase().includes('difficulty'));
+            if (!diffColumn) return;
+
+            const uniqueDifficulties = [...new Set(rawData.map(item => item[diffColumn]))]
+                .filter(val => val && val.trim() !== "")
+                .sort();
+
+            const filterDropdown = document.getElementById('difficultyFilter');
+            filterDropdown.innerHTML = '<option value="all">All Difficulties (NLW)</option>';
+            
+            uniqueDifficulties.forEach(diff => {
+                const opt = document.createElement('option');
+                opt.value = diff;
+                opt.textContent = diff;
+                filterDropdown.appendChild(opt);
+            });
+        }
+
+        function filterAndSortData() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const selectedDiff = document.getElementById('difficultyFilter').value;
+
+            let results = rawData.filter(item => {
+                const diffKey = Object.keys(item).find(k => k.toLowerCase().includes('difficulty'));
+                const matchesDiff = selectedDiff === 'all' || (diffKey && item[diffKey] === selectedDiff);
+                
+                const matchesSearch = Object.values(item).some(val => 
+                    String(val).toLowerCase().includes(searchTerm)
+                );
+
+                return matchesDiff && matchesSearch;
+            });
+
+            results.sort((sourceA, sourceB) => {
+                let factorA, factorB;
+
+                if (currentSortRule === 'ranking') {
+                    factorA = sourceA._defaultRank;
+                    factorB = sourceB._defaultRank;
+                } else if (currentSortRule === 'attempts') {
+                    const attemptKey = Object.keys(sourceA).find(k => k.toLowerCase().includes('attempt'));
+                    factorA = attemptKey ? parseInt(sourceA[attemptKey].replace(/,/g, '')) || 0 : 0;
+                    factorB = attemptKey ? parseInt(sourceB[attemptKey].replace(/,/g, '')) || 0 : 0;
+                } else if (currentSortRule === 'date') {
+                    const dateKey = Object.keys(sourceA).find(k => k.toLowerCase().includes('date'));
+                    factorA = dateKey ? new Date(sourceA[dateKey]) : 0;
+                    factorB = dateKey ? new Date(sourceB[dateKey]) : 0;
+                    if (isNaN(factorA)) factorA = 0;
+                    if (isNaN(factorB)) factorB = 0;
+                }
+
+                if (factorA < factorB) return sortAscending ? -1 : 1;
+                if (factorA > factorB) return sortAscending ? 1 : -1;
+                return 0;
+            });
+
+            renderDashboard(results);
+        }
+
+        function renderDashboard(data) {
+            const view = document.getElementById('listView');
+            const emptyState = document.getElementById('emptyState');
+
+            if (data.length === 0) {
+                view.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            view.classList.remove('hidden');
+
+            view.innerHTML = data.map(level => {
+                const levelNameKey = Object.keys(level).find(k => k.toLowerCase() === 'level' || k.toLowerCase() === 'name' || k.toLowerCase().includes('level name')) || Object.keys(level)[1];
+                const diffKey = Object.keys(level).find(k => k.toLowerCase().includes('difficulty'));
+                const attemptKey = Object.keys(level).find(k => k.toLowerCase().includes('attempt'));
+                const dateKey = Object.keys(level).find(k => k.toLowerCase().includes('date'));
+                const creatorKey = Object.keys(level).find(k => k.toLowerCase().includes('creator') || k.toLowerCase().includes('author'));
+
+                return `
+                    <div class="bg-slate-800 border border-slate-700/70 p-5 rounded-xl hover:border-indigo-500/50 transition duration-200 flex flex-col justify-between shadow-xs">
+                        <div>
+                            <div class="flex justify-between items-start gap-2 mb-3">
+                                <span class="bg-slate-900 text-slate-400 font-mono text-xs px-2 py-0.5 rounded border border-slate-700">
+                                    #${level._defaultRank}
+                                </span>
+                                ${diffKey && level[diffKey] ? `
+                                    <span class="bg-indigo-500/10 text-indigo-400 font-semibold text-xs px-2.5 py-0.5 rounded-full border border-indigo-500/20">
+                                        ${level[diffKey]}
+                                    </span>
+                                ` : ''}
+                            </div>
+                            
+                            <h3 class="text-lg font-bold text-white tracking-tight line-clamp-1 mb-1">${level[levelNameKey] || 'Unknown Level'}</h3>
+                            ${creatorKey && level[creatorKey] ? `<p class="text-xs text-slate-400 mb-4">by ${level[creatorKey]}</p>` : '<div class="h-4"></div>'}
+                            
+                            <div class="border-t border-slate-700/60 pt-3 space-y-2 text-sm">
+                                ${attemptKey && level[attemptKey] ? `
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-400">Attempts:</span>
+                                        <span class="font-semibold font-mono text-slate-200">${Number(level[attemptKey].replace(/,/g, '')).toLocaleString() || level[attemptKey]}</span>
+                                    </div>
+                                ` : ''}
+                                ${dateKey && level[dateKey] ? `
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-400">Completed:</span>
+                                        <span class="text-slate-300 font-medium">${level[dateKey]}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function changeSortRule(rule) {
+            ['ranking', 'date', 'attempts'].forEach(r => {
+                document.getElementById(`sort-${r}`).className = "px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer text-slate-400 hover:text-slate-200";
+            });
+            
+            currentSortRule = rule;
+            document.getElementById(`sort-${rule}`).className = "px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer bg-indigo-600 text-white";
+            
+            sortAscending = (rule === 'ranking' || rule === 'date');
+            updateDirectionIcon();
+            filterAndSortData();
+        }
+
+        function toggleSortDirection() {
+            sortAscending = !sortAscending;
+            updateDirectionIcon();
+            filterAndSortData();
+        }
+
+        function updateDirectionIcon() {
+            const icon = document.getElementById('directionIcon');
+            if (sortAscending) {
+                icon.className = "fa-solid fa-sort-amount-up";
+            } else {
+                icon.className = "fa-solid fa-sort-amount-down";
+            }
+        }
+
+        function toggleLoader(show) {
+            document.getElementById('loading').classList.toggle('hidden', !show);
+            if(show) {
+                document.getElementById('listView').classList.add('hidden');
+                document.getElementById('emptyState').classList.add('hidden');
+            }
+        }
+
+        fetchData();
+    </script>
+</body>
+</html>
