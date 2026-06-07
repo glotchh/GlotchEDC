@@ -3,157 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Extreme Demon Completion Tracker</title>
-    <!-- Tailwind CSS Engine -->
+    <title>Glotch's Extreme Demon Completions</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans antialiased selection:bg-indigo-500/30">
+<body class="bg-[#060608] text-neutral-100 font-sans antialiased selection:bg-neutral-800 selection:text-white">
 
-    <div class="max-w-7xl mx-auto px-4 py-8">
-        <!-- Header -->
-        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 pb-6 border-b border-slate-800 gap-4">
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 pb-6 border-b border-neutral-800 gap-4">
             <div>
                 <h1 class="text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
-                    <i class="fa-solid fa-trophy text-amber-500"></i> Demon Completions Tracker
+                    <i class="fa-solid fa-trophy text-amber-500"></i> Glotch's Extreme Demon Completions
                 </h1>
-                <p class="text-sm text-slate-400 mt-1">Live data synced from Google Sheets</p>
+                <p class="text-sm text-neutral-400 mt-1">
+                    All GD extreme demons completed by 
+                    <a href="https://youtube.com/@glotchh" target="_blank" class="text-white hover:underline font-medium inline-flex items-center gap-1">
+                        Glotch <i class="fa-solid fa-external-link text-[10px]"></i>
+                    </a>
+                </p>
             </div>
-            <button onclick="fetchData()" class="bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 shadow-lg shadow-indigo-600/20 cursor-pointer">
+            <button onclick="fetchData()" class="bg-white hover:bg-neutral-200 text-black active:scale-95 px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2 shadow-sm cursor-pointer">
                 <i class="fa-solid fa-rotate"></i> Sync Data
             </button>
         </header>
 
-        <!-- Controls Dashboard -->
-        <div class="bg-slate-800/50 p-5 rounded-2xl border border-slate-700/60 mb-8 flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center backdrop-blur-md">
+        <div class="bg-neutral-900/50 p-5 rounded-2xl border border-neutral-800 mb-8 flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center backdrop-blur-md">
             
-            <!-- Filter by NLW Difficulty -->
-            <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center grow max-w-2xl">
+            <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center grow">
                 <div class="relative w-full sm:w-64">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-neutral-500">
                         <i class="fa-solid fa-layer-group"></i>
                     </span>
-                    <select id="difficultyFilter" onchange="filterAndSortData()" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-4 py-2.5 text-sm text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 cursor-pointer appearance-none">
+                    <select id="difficultyFilter" onchange="filterAndSortData()" class="w-full bg-[#060608] border border-neutral-800 rounded-xl pl-9 pr-4 py-2.5 text-sm text-neutral-200 focus:outline-hidden focus:ring-1 focus:ring-white cursor-pointer appearance-none">
                         <option value="all">All Difficulties (NLW)</option>
                     </select>
                 </div>
                 
-                <!-- Search bar input -->
                 <div class="relative grow">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-neutral-500">
                         <i class="fa-solid fa-magnifying-glass"></i>
                     </span>
-                    <input type="text" id="searchInput" oninput="filterAndSortData()" placeholder="Search level name, creator..." class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-indigo-500">
+                    <input type="text" id="searchInput" oninput="filterAndSortData()" placeholder="Search level name, creator..." class="w-full bg-[#060608] border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-neutral-200 focus:outline-hidden focus:ring-1 focus:ring-white">
                 </div>
             </div>
 
-            <!-- Sorting Parameters -->
-            <div class="flex flex-wrap items-center gap-3 justify-start lg:justify-end">
-                <div class="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-xl p-1">
-                    <button onclick="changeSortRule('ranking')" id="sort-ranking" class="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer bg-indigo-600 text-white">
+            <div class="flex items-center gap-3 justify-start">
+                <div class="flex items-center gap-2 bg-[#060608] border border-neutral-800 rounded-xl p-1">
+                    <button onclick="changeSortRule('ranking')" id="sort-ranking" class="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer bg-white text-black">
                         Default Rank
                     </button>
-                    <button onclick="changeSortRule('date')" id="sort-date" class="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer text-slate-400 hover:text-slate-200">
+                    <button onclick="changeSortRule('date')" id="sort-date" class="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer text-neutral-400 hover:text-neutral-200">
                         Date Done
                     </button>
-                    <button onclick="changeSortRule('attempts')" id="sort-attempts" class="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer text-slate-400 hover:text-slate-200">
+                    <button onclick="changeSortRule('attempts')" id="sort-attempts" class="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer text-neutral-400 hover:text-neutral-200">
                         Attempts
                     </button>
                 </div>
 
-                <button onclick="toggleSortDirection()" class="bg-slate-900 border border-slate-700 text-slate-200 p-2.5 rounded-xl text-sm hover:bg-slate-750 transition cursor-pointer w-10 h-10 flex items-center justify-center" title="Invert Sorting Direction">
+                <button onclick="toggleSortDirection()" class="bg-[#060608] border border-neutral-800 text-neutral-200 p-2.5 rounded-xl text-sm hover:bg-neutral-900 transition cursor-pointer w-10 h-10 flex items-center justify-center" title="Invert Sorting Direction">
                     <i id="directionIcon" class="fa-solid fa-sort-amount-down"></i>
                 </button>
             </div>
         </div>
 
-        <!-- System Loading Loop -->
         <div id="loading" class="flex flex-col items-center justify-center py-24">
-            <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500/20 border-b-indigo-500 mb-4"></div>
-            <p class="text-slate-400 font-medium animate-pulse">Parsing Google Sheets output...</p>
+            <div class="animate-spin rounded-full h-12 w-12 border-2 border-neutral-800 border-b-white mb-4"></div>
+            <p class="text-neutral-500 font-medium animate-pulse">Parsing Google Sheets output...</p>
         </div>
 
-        <!-- No Matching Items State -->
-        <div id="emptyState" class="hidden text-center py-20 bg-slate-800/20 rounded-2xl border border-dashed border-slate-700">
-            <i class="fa-solid fa-folder-open text-slate-600 text-4xl mb-3"></i>
-            <p class="text-slate-400 font-medium">No completions matching your parameters found.</p>
+        <div id="emptyState" class="hidden text-center py-20 bg-neutral-900/20 rounded-2xl border border-dashed border-neutral-800">
+            <i class="fa-solid fa-folder-open text-neutral-700 text-4xl mb-3"></i>
+            <p class="text-neutral-500 font-medium">No completions matching your parameters found.</p>
         </div>
 
-        <!-- Render View Layout -->
-        <div id="listView" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden"></div>
+        <div id="listView" class="flex flex-col gap-4 hidden"></div>
     </div>
 
 <script>
-        // Formatted cleanly to pull raw text streaming safely from Google Drive
-        const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSofYRWmgxZ13DQ1Bj2_jPEQo8dh0W8fv7kV7vpFxO8TAuKB3KXfbVYdCfMCPxBtXd8TcfeVhJLbj9J/pub?gid=0&single=true&output=csv'; 
+        // Utilizing Google Visualization API wrapper to completely bypass CORS security restrictions on local files
+        const SHEET_JSON_URL = 'https://docs.google.com/spreadsheets/d/1vSofYRWmgxZ13DQ1Bj2_jPEQo8dh0W8fv7kV7vpFxO8TAuKB3KXfbVYdCfMCPxBtXd8TcfeVhJLbj9J/gviz/tq?tqx=responseHandler:processGoogleData';
 
         let rawData = [];
         let currentSortRule = 'ranking'; 
         let sortAscending = true; 
 
-        // Safe CSV Parser that accommodates quotes, commas, and missing fields
-        function parseCSV(text) {
-            let lines = text.split(/\r\n|\n/);
-            return lines.map(line => {
-                let matches = [];
-                let match;
-                // Matches standard text OR text wrapped in quotes
-                let regex = /([^",]+)|"([^"]*)"/g;
-                
-                while ((match = regex.exec(line)) !== null) {
-                    matches.push(match[1] || match[2]);
-                }
-                return matches.map(val => val.trim());
-            }).filter(row => row.length > 0);
+        // The exact ordered sequence of NLW difficulties based on tier ranking weight list
+        const DIFFICULTY_ORDER = [
+            "all",
+            "breaking point",
+            "terrifying",
+            "relentless",
+            "ruthless",
+            "merciless",
+            "unleashed",
+            "impossible"
+        ];
+
+        function fetchData() {
+            toggleLoader(true);
+            
+            const oldScript = document.getElementById('sheets-jsonp');
+            if (oldScript) oldScript.remove();
+
+            const script = document.createElement('script');
+            script.id = 'sheets-jsonp';
+            script.src = SHEET_JSON_URL + '&t=' + new Date().getTime();
+            
+            script.onerror = function() {
+                console.error("Dashboard Sync Interrupted");
+                alert("Could not load tracking values.\n\nMake sure the spreadsheet is shared as 'Anyone with link can view'.");
+                toggleLoader(false);
+            };
+            
+            document.body.appendChild(script);
         }
 
-        async function fetchData() {
-            toggleLoader(true);
+        window.processGoogleData = function(response) {
             try {
-                // Cache-busting parameter added to prevent CORS/Caching hiccups
-                const response = await fetch(`${SHEET_CSV_URL}&t=${new Date().getTime()}`);
-                if (!response.ok) throw new Error("Network error accessing source sheet.");
+                if (!response || !response.table) throw new Error("Invalid sheet layout returned");
                 
-                const dataText = await response.text();
-                const rows = parseCSV(dataText);
-
-                if(!rows || rows.length <= 1) {
-                    throw new Error("Sheet is empty or structure is invalid.");
-                }
-
-                const headers = rows[0];
+                const cols = response.table.cols.map(c => (c.label || '').trim());
+                const rows = response.table.rows;
                 
-                rawData = rows.slice(1).map((row, index) => {
-                    let record = { _defaultRank: index + 1 }; 
-                    headers.forEach((header, colIdx) => {
-                        record[header] = row[colIdx] || '';
+                rawData = rows.map((row, index) => {
+                    let record = { _defaultRank: index + 1 };
+                    cols.forEach((header, colIdx) => {
+                        if (header) {
+                            const cellValue = row.c[colIdx] ? row.c[colIdx].v : '';
+                            record[header] = cellValue !== null ? String(cellValue) : '';
+                        }
                     });
                     return record;
                 });
 
-                buildDifficultyFilter(headers);
+                buildDifficultyFilter(cols);
                 filterAndSortData();
             } catch (error) {
-                console.error("Dashboard Sync Interrupted:", error);
-                alert("Could not load tracking values.\n\nVerify that:\n1. The spreadsheet is Published to Web as a CSV.\n2. You are connected to the internet.");
+                console.error("Data conversion error:", error);
+                alert("Error processing tracking data structure.");
             } finally {
                 toggleLoader(false);
             }
-        }
+        };
 
         function buildDifficultyFilter(headers) {
             const diffColumn = headers.find(h => h.toLowerCase().includes('difficulty'));
             if (!diffColumn) return;
 
-            const uniqueDifficulties = [...new Set(rawData.map(item => item[diffColumn]))]
-                .filter(val => val && val.trim() !== "")
-                .sort();
+            const detectedDifficulties = [...new Set(rawData.map(item => item[diffColumn]))]
+                .filter(val => val && val.trim() !== "");
+
+            // Sort target arrays based on predefined tier order list, remaining dynamic options fall to alphabetical back
+            detectedDifficulties.sort((a, b) => {
+                let idxA = DIFFICULTY_ORDER.indexOf(a.toLowerCase());
+                let idxB = DIFFICULTY_ORDER.indexOf(b.toLowerCase());
+                if (idxA === -1) idxA = 999;
+                if (idxB === -1) idxB = 999;
+                return idxA - idxB || a.localeCompare(b);
+            });
 
             const filterDropdown = document.getElementById('difficultyFilter');
             filterDropdown.innerHTML = '<option value="all">All Difficulties (NLW)</option>';
             
-            uniqueDifficulties.forEach(diff => {
+            detectedDifficulties.forEach(diff => {
                 const opt = document.createElement('option');
                 opt.value = diff;
                 opt.textContent = diff;
@@ -221,38 +233,68 @@
                 const attemptKey = Object.keys(level).find(k => k.toLowerCase().includes('attempt'));
                 const dateKey = Object.keys(level).find(k => k.toLowerCase().includes('date'));
                 const creatorKey = Object.keys(level).find(k => k.toLowerCase().includes('creator') || k.toLowerCase().includes('author'));
+                const videoKey = Object.keys(level).find(k => k.toLowerCase().includes('youtube') || k.toLowerCase().includes('video') || k.toLowerCase().includes('link') || k.toLowerCase().includes('url'));
+
+                const rank = level._defaultRank;
+                
+                // Color formatting definitions for Top ranks (#fff688 for 1-5, Silver variations for 6-10)
+                let borderStyle = "border-neutral-800";
+                let rankBadgeStyle = "bg-neutral-900 border-neutral-800 text-neutral-400";
+                
+                if (rank >= 1 && rank <= 5) {
+                    borderStyle = "border-[#fff688]/30 shadow-xs shadow-[#fff688]/5";
+                    rankBadgeStyle = "bg-[#fff688]/10 border-[#fff688]/30 text-[#fff688]";
+                } else if (rank >= 6 && rank <= 10) {
+                    borderStyle = "border-neutral-400/30 shadow-xs shadow-white/5";
+                    rankBadgeStyle = "bg-neutral-400/10 border-neutral-400/30 text-neutral-300";
+                }
 
                 return `
-                    <div class="bg-slate-800 border border-slate-700/70 p-5 rounded-xl hover:border-indigo-500/50 transition duration-200 flex flex-col justify-between shadow-xs">
-                        <div>
-                            <div class="flex justify-between items-start gap-2 mb-3">
-                                <span class="bg-slate-900 text-slate-400 font-mono text-xs px-2 py-0.5 rounded border border-slate-700">
-                                    #${level._defaultRank}
+                    <div class="bg-neutral-900/40 border ${borderStyle} p-5 rounded-xl hover:border-neutral-500/40 transition duration-150 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div class="flex items-center gap-4 grow">
+                            <div class="shrink-0">
+                                <span class="font-mono text-xs font-bold px-2.5 py-1 rounded-md border ${rankBadgeStyle}">
+                                    #${rank}
                                 </span>
-                                ${diffKey && level[diffKey] ? `
-                                    <span class="bg-indigo-500/10 text-indigo-400 font-semibold text-xs px-2.5 py-0.5 rounded-full border border-indigo-500/20">
-                                        ${level[diffKey]}
-                                    </span>
-                                ` : ''}
                             </div>
                             
-                            <h3 class="text-lg font-bold text-white tracking-tight line-clamp-1 mb-1">${level[levelNameKey] || 'Unknown Level'}</h3>
-                            ${creatorKey && level[creatorKey] ? `<p class="text-xs text-slate-400 mb-4">by ${level[creatorKey]}</p>` : '<div class="h-4"></div>'}
-                            
-                            <div class="border-t border-slate-700/60 pt-3 space-y-2 text-sm">
-                                ${attemptKey && level[attemptKey] ? `
-                                    <div class="flex justify-between">
-                                        <span class="text-slate-400">Attempts:</span>
-                                        <span class="font-semibold font-mono text-slate-200">${Number(level[attemptKey].replace(/,/g, '')).toLocaleString() || level[attemptKey]}</span>
-                                    </div>
-                                ` : ''}
-                                ${dateKey && level[dateKey] ? `
-                                    <div class="flex justify-between">
-                                        <span class="text-slate-400">Completed:</span>
-                                        <span class="text-slate-300 font-medium">${level[dateKey]}</span>
-                                    </div>
-                                ` : ''}
+                            <div class="space-y-0.5">
+                                <h3 class="text-base font-bold text-white tracking-tight line-clamp-1">
+                                    ${level[levelNameKey] || 'Unknown Level'}
+                                </h3>
+                                ${creatorKey && level[creatorKey] ? `<p class="text-xs text-neutral-500">by ${level[creatorKey]}</p>` : ''}
                             </div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm sm:justify-end text-neutral-300">
+                            ${diffKey && level[diffKey] ? `
+                                <div class="flex flex-col sm:items-end">
+                                    <span class="text-[10px] text-neutral-500 uppercase tracking-wider font-semibold">Tier</span>
+                                    <span class="font-medium text-neutral-200">${level[diffKey]}</span>
+                                </div>
+                            ` : ''}
+
+                            ${attemptKey && level[attemptKey] ? `
+                                <div class="flex flex-col sm:items-end">
+                                    <span class="text-[10px] text-neutral-500 uppercase tracking-wider font-semibold">Attempts</span>
+                                    <span class="font-mono font-medium text-neutral-200">${Number(level[attemptKey].replace(/,/g, '')).toLocaleString() || level[attemptKey]}</span>
+                                </div>
+                            ` : ''}
+                            
+                            ${dateKey && level[dateKey] ? `
+                                <div class="flex flex-col sm:items-end">
+                                    <span class="text-[10px] text-neutral-500 uppercase tracking-wider font-semibold">Date</span>
+                                    <span class="font-medium text-neutral-200">${level[dateKey]}</span>
+                                </div>
+                            ` : ''}
+
+                            ${videoKey && level[videoKey] ? `
+                                <div class="flex items-center pl-2 sm:pl-0">
+                                    <a href="${level[videoKey]}" target="_blank" class="bg-neutral-800 hover:bg-neutral-700 text-white p-2 rounded-lg transition flex items-center justify-center w-9 h-9" title="Watch Completion Video">
+                                        <i class="fa-brands fa-youtube text-red-500 text-base"></i>
+                                    </a>
+                                </div>
+                            ` : ''}
                         </div>
                     </div>
                 `;
@@ -261,11 +303,11 @@
 
         function changeSortRule(rule) {
             ['ranking', 'date', 'attempts'].forEach(r => {
-                document.getElementById(`sort-${r}`).className = "px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer text-slate-400 hover:text-slate-200";
+                document.getElementById(`sort-${r}`).className = "px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer text-neutral-500 hover:text-neutral-300";
             });
             
             currentSortRule = rule;
-            document.getElementById(`sort-${rule}`).className = "px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer bg-indigo-600 text-white";
+            document.getElementById(`sort-${rule}`).className = "px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer bg-white text-black";
             
             sortAscending = (rule === 'ranking' || rule === 'date');
             updateDirectionIcon();
