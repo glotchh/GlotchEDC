@@ -281,30 +281,30 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-2 sm:flex sm:items-center gap-x-1 sm:gap-x-1.5 gap-y-2 text-base text-neutral-200">
+                        <div class="grid grid-cols-2 sm:flex sm:items-center gap-x-1 sm:gap-x-1 gap-y-2 text-base text-neutral-200">
                             ${diffKey && level[diffKey] ? `
-                                <div class="flex flex-col sm:items-end w-24 sm:w-26 shrink-0">
+                                <div class="flex flex-col sm:items-end w-20 sm:w-20 shrink-0">
                                     <span class="text-[11px] text-neutral-500 uppercase tracking-wider font-semibold">Tier</span>
                                     <span class="font-semibold text-white truncate w-full sm:text-right">${level[diffKey]}</span>
                                 </div>
                             ` : ''}
 
                             ${attemptKey && level[attemptKey] ? `
-                                <div class="flex flex-col sm:items-end w-24 sm:w-26 shrink-0">
+                                <div class="flex flex-col sm:items-end w-20 sm:w-20 shrink-0">
                                     <span class="text-[11px] text-neutral-500 uppercase tracking-wider font-semibold">Attempts</span>
                                     <span class="font-mono font-semibold text-white truncate w-full sm:text-right">${level[attemptKey]}</span>
                                 </div>
                             ` : ''}
                             
                             ${dateKey && level[dateKey] ? `
-                                <div class="flex flex-col sm:items-end w-28 sm:w-32 shrink-0 sm:ml-2">
+                                <div class="flex flex-col sm:items-end w-24 sm:w-24 shrink-0 sm:ml-6">
                                     <span class="text-[11px] text-neutral-500 uppercase tracking-wider font-semibold">Date</span>
                                     <span class="font-semibold text-white truncate w-full sm:text-right">${level[dateKey]}</span>
                                 </div>
                             ` : ''}
 
                             ${videoKey && level[videoKey] ? `
-                                <div class="flex items-center justify-end col-span-2 sm:col-span-1 pl-1 sm:pl-0">
+                                <div class="flex items-center justify-end col-span-2 sm:col-span-1 pl-1 sm:pl-3">
                                     <a href="${level[videoKey]}" target="_blank" class="bg-neutral-800 hover:bg-neutral-700 text-white p-2 rounded-lg transition flex items-center justify-center w-10 h-10 shrink-0" title="Watch Completion Video">
                                         <i class="fa-brands fa-youtube text-red-500 text-lg"></i>
                                     </a>
