@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Glotch's Extreme Demon Completions</title>
+    <title>Glotch's Extremes</title>
     <link rel="icon" type="image/jpeg" href="favicon.png">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -253,7 +253,6 @@
 
                 const rank = level._defaultRank;
                 
-                // Solid styling setup: locks outline border rules while shifting hover mechanics strictly to background brightness changes
                 let baseCardStyle = "bg-neutral-900/40 border-neutral-800 hover:bg-neutral-800/50";
                 let rankBadgeStyle = "bg-neutral-900 border-neutral-800 text-neutral-400";
                 
@@ -282,31 +281,31 @@
                             </div>
                         </div>
 
-                        <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-base sm:justify-end text-neutral-200">
+                        <div class="grid grid-cols-2 sm:flex sm:items-center gap-x-5 gap-y-2 text-base text-neutral-200">
                             ${diffKey && level[diffKey] ? `
-                                <div class="flex flex-col sm:items-end">
+                                <div class="flex flex-col sm:items-end w-24 sm:w-28 shrink-0">
                                     <span class="text-[11px] text-neutral-500 uppercase tracking-wider font-semibold">Tier</span>
-                                    <span class="font-semibold text-white">${level[diffKey]}</span>
+                                    <span class="font-semibold text-white truncate w-full sm:text-right">${level[diffKey]}</span>
                                 </div>
                             ` : ''}
 
                             ${attemptKey && level[attemptKey] ? `
-                                <div class="flex flex-col sm:items-end">
+                                <div class="flex flex-col sm:items-end w-24 sm:w-28 shrink-0">
                                     <span class="text-[11px] text-neutral-500 uppercase tracking-wider font-semibold">Attempts</span>
-                                    <span class="font-mono font-semibold text-white">${level[attemptKey]}</span>
+                                    <span class="font-mono font-semibold text-white truncate w-full sm:text-right">${level[attemptKey]}</span>
                                 </div>
                             ` : ''}
                             
                             ${dateKey && level[dateKey] ? `
-                                <div class="flex flex-col sm:items-end">
+                                <div class="flex flex-col sm:items-end w-28 sm:w-28 shrink-0">
                                     <span class="text-[11px] text-neutral-500 uppercase tracking-wider font-semibold">Date</span>
-                                    <span class="font-semibold text-white">${level[dateKey]}</span>
+                                    <span class="font-semibold text-white truncate w-full sm:text-right">${level[dateKey]}</span>
                                 </div>
                             ` : ''}
 
                             ${videoKey && level[videoKey] ? `
-                                <div class="flex items-center pl-2 sm:pl-0">
-                                    <a href="${level[videoKey]}" target="_blank" class="bg-neutral-800 hover:bg-neutral-700 text-white p-2 rounded-lg transition flex items-center justify-center w-10 h-10" title="Watch Completion Video">
+                                <div class="flex items-center justify-end col-span-2 sm:col-span-1 pl-2 sm:pl-0">
+                                    <a href="${level[videoKey]}" target="_blank" class="bg-neutral-800 hover:bg-neutral-700 text-white p-2 rounded-lg transition flex items-center justify-center w-10 h-10 shrink-0" title="Watch Completion Video">
                                         <i class="fa-brands fa-youtube text-red-500 text-lg"></i>
                                     </a>
                                 </div>
